@@ -1,0 +1,30 @@
+{
+  "name": "test_fb_api",
+  "version": "1.0.0",
+  "description": "Chatbot dependencies",
+  "main": "index.js",
+  "dependencies": {
+    "dialogflow": "^0.7.0",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.6",
+    "node-fetch": "^2.3.0",
+    "npm": "^6.6.0",
+    "save": "^2.3.3",
+    "socket.io": "^2.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vibhav-Deo/LillyNewUI.git"
+  },
+  "author": "Vibhav",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vibhav-Deo/LillyNewUI.git/issues"
+  },
+  "homepage": "https://github.com/Vibhav-Deo/LillyNewUI.git#readme"
+}
