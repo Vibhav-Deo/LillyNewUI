@@ -16,6 +16,7 @@ const sessionClient = new dialogflow.SessionsClient(config);
 const sessionPath = sessionClient.sessionPath(projectId, sessionId);
 io.on('connection', function (socket) {
     console.log('a user connected');
+    console.log('User Query'+message)
     socket.on('lilybot', function (message) {
         const request = {
             session: sessionPath,
@@ -30,8 +31,21 @@ io.on('connection', function (socket) {
             .detectIntent(request)
             .then(responses => {
                 const result = responses[0].queryResult;
+                console.log('Query Response'+result.fulfillmentText)
                 //return res.status(200).send(result.fulfillmentText);
-                return socket.emit('lilybot', result.fulfillmentText)
+            })
+            .then(() => {
+                var userResponses = [];
+                var scoreQuestions = [];
+                if(message === ('Sometimes'||'Never'||'Always'||'Often'))
+                {
+                    userResponses.push(message)
+                }
+                if(message === ('Get Results' || 'get results' || 'getresults' ||'GetResults'))
+                {
+                    scoreQuestions = scoreCalculation(userResponses,message)
+                }
+                return [socket.emit('lilybot', result.fulfillmentText),socket.emit('lilybot',scoreQuestions[0])];
             })
             .catch(err => {
                 console.error('ERROR:', err);
