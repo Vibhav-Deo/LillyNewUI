@@ -18,11 +18,11 @@ var scoreResult = {
     "stress": 0,
     "depression": 0
 }
-waitForUser(message,result.fulfillmentMessages[i].text.text[0])
+function waitForUser(message,result)
 {
     if(message === 'Always'||'Never'||'Sometimes'||'Often')
     {
-        socket.emit('lilybot', result.fulfillmentMessages[i].text.text[0]);
+        socket.emit('lilybot', result);
         scoreResult = scoreCalculation(result, message, scoreResult);
     }
 }
