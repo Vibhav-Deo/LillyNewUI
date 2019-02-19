@@ -7,7 +7,7 @@ require('dotenv').config({ path: 'variables.env' });
 var SERVER = {
     APP_NAME: 'boilerplate-deakin',
     PORTS: {
-        HAPI: 8003
+        HAPI: 8002
         //HAPI: 3000
     },
     TOKEN_EXPIRATION_IN_MINUTES: 600,

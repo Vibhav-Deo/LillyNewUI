@@ -11,7 +11,7 @@ var sessionPath;
 var date;
 var messageToUser;
 var data = {
-    userID: 0,
+    userId: 0,
     userQuery: '',
     queryResponse: '',
     userQueryTime: {
@@ -43,15 +43,15 @@ var scoreResults = {
 }
 var dialogFlowCommunication = async function (message, io,socket) {
     console.log('[SOCKET ID]',socket.id)
-    if (data.userID === 0)
+    if (data.userId === 0)
         {
-            data.userID = uuid.v1();
+            data.userId = uuid.v1();
             sessionId = uuid.v4();
             sessionClient = new dialogflow.SessionsClient(Config.APP_CONSTANTS.DIALOGFLOW_CONFIG);
             sessionPath = sessionClient.sessionPath(Config.APP_CONSTANTS.PROJECT_ID, sessionId);
         }
         
-        console.log('[USER ID]',data.userID);
+        console.log('[USER ID]',data.userId);
         date = new Date();
         data.userQueryTime.hours = date.getHours();
         data.userQueryTime.minutes = date.getMinutes();
@@ -82,7 +82,7 @@ var dialogFlowCommunication = async function (message, io,socket) {
                     console.log("In dialogflow communication channel");
                     if (data.queryResponse.includes('completing the questionnaire')) 
             {
-                dbconnection.storeScoreToDb(data.userID, score, scoreResults);
+                dbconnection.storeScoreToDb(data.userId, score, scoreResults);
                 messageToUser = ("Stress-:"+scoreResults.stress.value+" Anxiety-:"+scoreResults.anxiety.value+" Depression-:"+scoreResults.depression.value)
                 io.sockets.connected[socket.id].emit('lilybot', messageToUser + profileUser(scoreResults));
             }
@@ -99,7 +99,7 @@ var dialogFlowCommunication = async function (message, io,socket) {
             if(data.userQuery.toLowerCase === 'stop')
             {
                 data = {
-                    userID: 0,
+                    userId: 0,
                     userQuery: '',
                     queryResponse: '',
                     userQueryTime: {

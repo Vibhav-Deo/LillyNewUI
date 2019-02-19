@@ -1,10 +1,11 @@
 const dbConnection = require('../Utils/dbConnection')
 var Config = require('../Config');
 var universalFunctions = require('../Utils/UniversalFunctions')
-var validator = require('validator')
+var error;
+var success;
 var userConversation = {
     method: 'GET',
-    path: '/userConversation/{userId}',
+    path: '/api/userConversation/{userId}',
     handler: async (request, response) => {
         console.log('[GET]-:Hello')
         var chatHistory;
@@ -27,7 +28,7 @@ var userConversation = {
 
 var userInfo = {
     method: 'GET',
-    path: '/userInfo',
+    path: '/api/user/userScores',
     handler: async (request, response) => {
         var userScores;
         userScores = await dbConnection.getUserScores();
@@ -47,53 +48,47 @@ var userInfo = {
 }
 var createUser = {
     method: 'POST',
-    path: '/register',
+    path: '/api/user',
     handler: async (request, response) => {
-        var validationflag;
+        var nullValidation;
+        var stringValidation;
+        var emailValidation;
         var protectPaswword;
-        var messageToUser;
-        console.log('[REQUEST]', request.payload)
+        var messageToUser = {};
+        var createstatus;
+        //console.log('[REQUEST]', request.payload)
         for (var key in request.payload) {
             console.log('[Value]', request.payload[key])
             if (universalFunctions.isEmpty(request.payload[key]) === true) {
-                var error = {
-                    statuscode: 400,
-                    custommessage: `${key} field was empty`
-                };
+                error = Config.APP_CONSTANTS.STATUS_MSG.ERROR.DEFAULT
                 messageToUser = universalFunctions.sendError(error)
-                validationflag = 1;
+                nullValidation = 1;
                 break;
             }
             else {
-                validationflag = 0;
+                nullValidation = 0;
             }
             if (universalFunctions.validateString(request.payload[key], '/[A-Z]/[a-z]/g') === false) {
-                var error = {
-                    statuscode: 400,
-                    custommessage: `${key} field is in wrong format`
-                };
-                messageToUser += universalFunctions.sendError(error)
-                validationflag = 1;
+                error = Config.APP_CONSTANTS.STATUS_MSG.ERROR.DEFAULT
+                messageToUser = universalFunctions.sendError(error)
+                stringValidation = 1;
                 break;
             }
             else {
-                validationflag = 0;
-            }
-            if (universalFunctions.verifyEmailFormat(request.payload.email) === true) {
-                validationflag = 0;
-            }
-            else {
-                var error = {
-                    statuscode: 400,
-                    custommessage: `${request.payload.email} has wrong format`
-                };
-                messageToUser += universalFunctions.sendError(error)
-                validationflag = 1;
+                stringValidation = 0;
             }
 
         }
-        if (validationflag === 0) {
-            console.log('USERTYPE : ',request.payload.usertype);
+        if (universalFunctions.verifyEmailFormat(request.payload.email) === true) {
+            emailValidation = 0;
+        }
+        else {
+            error = Config.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_EMAIL_FORMAT
+            messageToUser = universalFunctions.sendError(error)
+            emailValidation = 1;
+        }
+        if (nullValidation === 0 && stringValidation === 0 && emailValidation === 0) {
+            console.log('USERTYPE : ',request.payload.userRole);
             protectPaswword = universalFunctions.CryptData(request.payload.password)
             var createUser = {
                 firstname: request.payload.firstname,
@@ -101,23 +96,34 @@ var createUser = {
                 phone: request.payload.phone,
                 email: request.payload.email,
                 password: protectPaswword,
-                usertype:''
+                userRole:''
             }
-            if(request.payload.usertype === 'ADMIN')
+            if(request.payload.userRole === 'ADMIN')
             {
-                createUser.usertype = 'ADMIN'
+                createUser.userRole = 'ADMIN'
             }
             else
             {
-                createUser.usertype = 'USER'
+                createUser.userRole = 'USER'
             }
-            await dbConnection.createUser(createUser);
-            var success = {
-                statuscode: 201,
-                custommessage: 'User Created'
-            };
-            messageToUser = universalFunctions.sendSuccess(success)
+            createstatus = await dbConnection.createUser(createUser);
+            console.log('[Create Status] : ',createstatus)
+            if(createstatus === 'created')
+            {
+                success = Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.CREATED
+                messageToUser = universalFunctions.sendSuccess(success)
+            }
+            else if(createstatus === 'user exits')
+            {
+                error = Config.APP_CONSTANTS.STATUS_MSG.ERROR.USER_ALREADY_REGISTERED
+                messageToUser = await universalFunctions.sendError(error)
+            }
+            else
+            {
+                messageToUser = universalFunctions.sendError(createstatus)
+            }
         }
+        console.log('[Response from send error] : ',JSON.stringify(messageToUser))
         response.response(messageToUser);
     },
     config: {
@@ -133,28 +139,30 @@ var createUser = {
 }
 var login = {
     method: 'POST',
-    path: '/login',
+    path: '/api/user/login',
     handler: async (request, response) => {
         var login = {
             loginstatus:false,
-            usertype:''
+            userRole:'',
+            userId:'',
+            name:''
         }
+        var messageToUser = {};
         var email = request.payload.email
         var password = request.payload.password
-        var success = {
-            custommessage: 'Found User'
-        };
-        var error = {
-            custommessage: 'Authentication failure'
-        };
         login = await dbConnection.login(email,password);
         console.log('[LOGIN STATUS]',login.loginstatus)
         if(login.loginstatus === true)
-        response.response(universalFunctions.sendSuccess(success,login.usertype));
+        {
+            success = Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT;
+            messageToUser = universalFunctions.sendSuccess(success,login)
+        }
         else
         {
-            response.response(universalFunctions.sendError(error))
+            error = Config.APP_CONSTANTS.STATUS_MSG.ERROR.USER_NOT_FOUND;
+            messageToUser = universalFunctions.sendError(error)
         }
+        response.response(messageToUser)
     },
     config: {
         description: 'Login',

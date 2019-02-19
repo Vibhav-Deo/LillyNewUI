@@ -18,6 +18,7 @@ var sendError = function (data) {
         console.log('attaching resposnetype',data.type)
         var errorToSend = Boom.create(data.statusCode, data.customMessage);
         errorToSend.output.payload.responseType = data.type;
+        //console.log('[ERROR] : ',JSON.stringify(errorToSend));
         return errorToSend;
     } else {
         var errorToSend = '';
@@ -42,6 +43,7 @@ var sendError = function (data) {
         } else {
             errorToSend = data
         }
+        
         var customErrorMessage = errorToSend;
         if (typeof customErrorMessage == 'string'){
             if (errorToSend.indexOf("[") > -1) {
